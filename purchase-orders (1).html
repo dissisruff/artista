@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="הזמנות רכש">
+<meta name="theme-color" content="#1d6b3e">
+<meta name="description" content="מערכת הזמנות רכש לארגון">
+<title>הזמנות רכש</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f1eb; --card: #fff; --border: #e0dbd0;
+  --accent: #1d6b3e; --accent-light: #eaf4ee;
+  --text: #1a1a18; --text2: #6b6358; --text3: #a09890;
+  --red: #c0392b; --wa: #25D366; --wa-dark: #128C7E;
+  --radius: 14px; --shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; direction: rtl; }
+
+header { background: var(--accent); padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(29,107,62,0.3); }
+.header-logo { display: flex; align-items: center; gap: 9px; color: #fff; font-size: 1.1rem; font-weight: 900; }
+.header-logo .icon { background: rgba(255,255,255,0.2); border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+.header-date { color: rgba(255,255,255,0.7); font-size: 0.8rem; }
+
+.tabs-bar { background: var(--card); border-bottom: 2px solid var(--border); padding: 0 16px; display: flex; }
+.tab-btn { padding: 13px 18px; border: none; background: none; font-family: 'Heebo', sans-serif; font-size: 0.88rem; font-weight: 500; color: var(--text2); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; margin-bottom: -2px; }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
+
+.main { max-width: 720px; margin: 0 auto; padding: 16px 14px 110px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── REGULAR SUPPLIER CARD ── */
+.supplier-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; border: 1px solid var(--border); }
+.supplier-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 18px; cursor: pointer; transition: background 0.15s; }
+.supplier-header:hover { background: #faf9f6; }
+.supplier-info { display: flex; align-items: center; gap: 11px; }
+.supplier-avatar { width: 42px; height: 42px; border-radius: 10px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
+.supplier-name { font-size: 1rem; font-weight: 800; }
+.supplier-sub { font-size: 0.76rem; color: var(--text3); margin-top: 1px; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.order-badge { background: var(--accent); color: #fff; border-radius: 20px; padding: 2px 9px; font-size: 0.72rem; font-weight: 700; display: none; }
+.order-badge.visible { display: block; }
+.chevron { color: var(--text3); font-size: 0.75rem; transition: transform 0.25s; }
+.supplier-card.open .chevron, .bardo-card.open .chevron { transform: rotate(180deg); }
+
+.items-body { display: none; border-top: 1px solid var(--border); }
+.supplier-card.open .items-body { display: block; }
+.items-list { padding: 4px 0; }
+.item-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 16px; border-bottom: 1px solid #f2ede6; gap: 10px; }
+.item-row:last-child { border-bottom: none; }
+.item-row:hover { background: #fdfcf9; }
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-size: 0.9rem; font-weight: 500; }
+.item-unit { font-size: 0.72rem; color: var(--text3); margin-top: 1px; }
+
+.qty-controls { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--bg); color: var(--text); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+.qty-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.qty-btn.minus:hover { border-color: var(--red); color: var(--red); background: #fdecea; }
+.qty-btn:active { transform: scale(0.92); }
+.qty-input { width: 44px; text-align: center; border: 1.5px solid var(--border); border-radius: 8px; padding: 5px 2px; font-family: 'Heebo', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--text); background: var(--bg); transition: all 0.15s; -moz-appearance: textfield; }
+.qty-input::-webkit-outer-spin-button, .qty-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.qty-input:focus { outline: none; border-color: var(--accent); }
+.qty-input.has-val { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+
+.add-item-row { padding: 10px 16px; display: flex; gap: 8px; align-items: center; border-top: 1px dashed var(--border); background: #fdfcf9; }
+.add-item-input { flex: 1; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Heebo', sans-serif; font-size: 0.85rem; background: #fff; color: var(--text); }
+.add-item-input:focus { outline: none; border-color: var(--accent); }
+.add-item-unit-select { padding: 8px 6px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Heebo', sans-serif; font-size: 0.83rem; background: #fff; color: var(--text); width: 78px; }
+.add-item-btn-sm { padding: 8px 14px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-family: 'Heebo', sans-serif; font-size: 0.83rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+
+.group-header { padding: 7px 16px; background: linear-gradient(90deg, #1d6b3e12, transparent); border-top: 2px solid var(--accent); border-bottom: 1px solid var(--accent-light); display: flex; align-items: center; gap: 8px; }
+.group-header-label { font-size: 0.78rem; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+.group-header-icon { font-size: 0.9rem; }
+
+.unit-select { border: none; background: none; font-family: 'Heebo', sans-serif; font-size: 0.72rem; font-weight: 600; color: var(--accent); cursor: pointer; padding: 1px 2px; border-radius: 4px; margin-top: 2px; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath fill='%231d6b3e' d='M0 0l4 5 4-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: left 2px center; padding-left: 14px; }
+.unit-select:focus { outline: none; background-color: var(--accent-light); border-radius: 4px; }
+.unit-select:hover { background-color: var(--accent-light); border-radius: 4px; }
+
+.supplier-footer { display: none; padding: 12px 18px; background: #f7f5f0; border-top: 1px solid var(--border); justify-content: space-between; align-items: center; gap: 12px; }
+.supplier-footer.visible { display: flex; }
+.order-summary-text { font-size: 0.82rem; color: var(--text2); flex: 1; }
+.order-count-badge { font-weight: 700; color: var(--accent); }
+
+/* ── BARDO CARD ── */
+.bardo-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; border: 2px solid #d4b896; }
+.bardo-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 18px; cursor: pointer; transition: background 0.15s; background: #fffaf5; }
+.bardo-header:hover { background: #fff5ec; }
+.bardo-avatar { width: 42px; height: 42px; border-radius: 10px; background: #fdefd8; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
+.bardo-body { display: none; border-top: 1px solid #e8ddd0; }
+.bardo-card.open .bardo-body, .supplier-card.open .bardo-body { display: block; }
+
+.bardo-week-label { padding: 10px 16px 6px; font-size: 0.78rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; }
+
+/* day tabs */
+.day-tabs { display: flex; gap: 6px; padding: 8px 16px; overflow-x: auto; border-bottom: 1px solid var(--border); background: #fdfaf6; }
+.day-tab { padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--bg); font-family: 'Heebo', sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--text2); cursor: pointer; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
+.day-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.day-tab.has-data { border-color: var(--accent); color: var(--accent); }
+.day-tab.has-data.active { background: var(--accent); color: #fff; }
+
+.day-panel { display: none; padding: 6px 0; }
+.day-panel.active { display: block; }
+
+.day-date-row { display: flex; align-items: center; gap: 10px; padding: 8px 16px 4px; }
+.day-date-label { font-size: 0.78rem; color: var(--text2); font-weight: 600; }
+.day-date-input { padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Heebo', sans-serif; font-size: 0.85rem; background: #fff; color: var(--text); width: 130px; }
+.day-date-input:focus { outline: none; border-color: var(--accent); }
+
+.bardo-item-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 16px; border-bottom: 1px solid #f2ede6; gap: 10px; }
+.bardo-item-row:last-child { border-bottom: none; }
+.bardo-item-row:hover { background: #fdfcf9; }
+
+.bardo-footer { padding: 12px 18px; background: #fdf8f2; border-top: 1px solid #e8ddd0; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.bardo-summary { font-size: 0.82rem; color: var(--text2); }
+.bardo-summary strong { color: #8a5c00; }
+
+/* ── WA BUTTON ── */
+.wa-btn { display: flex; align-items: center; gap: 7px; background: var(--wa); color: #fff; border: none; border-radius: 24px; padding: 10px 18px; font-family: 'Heebo', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 3px 10px rgba(37,211,102,0.25); white-space: nowrap; flex-shrink: 0; }
+.wa-btn:hover { background: var(--wa-dark); transform: translateY(-1px); }
+
+.add-supplier-btn { width: 100%; padding: 13px; border: 2px dashed var(--border); border-radius: var(--radius); background: transparent; color: var(--text2); font-family: 'Heebo', sans-serif; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; margin-bottom: 14px; }
+.add-supplier-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+/* ── HISTORY ── */
+.history-empty { text-align: center; padding: 50px 20px; color: var(--text3); }
+.history-empty .icon { font-size: 2.5rem; margin-bottom: 10px; }
+.history-item { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 14px 16px; margin-bottom: 10px; }
+.history-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.history-supplier { font-weight: 800; font-size: 0.95rem; }
+.history-date { font-size: 0.75rem; color: var(--text3); margin-top: 2px; }
+.history-items-text { font-size: 0.82rem; color: var(--text2); line-height: 1.8; }
+
+/* ── MODAL ── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--card); border-radius: 20px 20px 0 0; padding: 22px 20px 36px; width: 100%; max-width: 720px; animation: slideUp 0.28s ease; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle { width: 38px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 18px; }
+.modal-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 16px; }
+.form-group { margin-bottom: 13px; }
+.form-label { font-size: 0.8rem; font-weight: 600; color: var(--text2); margin-bottom: 4px; display: block; }
+.form-input { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 9px; font-family: 'Heebo', sans-serif; font-size: 0.92rem; background: var(--bg); color: var(--text); }
+.form-input:focus { outline: none; border-color: var(--accent); }
+.modal-actions { display: flex; gap: 9px; margin-top: 16px; }
+.btn-primary { flex: 1; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-family: 'Heebo', sans-serif; font-size: 0.93rem; font-weight: 700; cursor: pointer; }
+.btn-primary:hover { background: #155c33; }
+.btn-secondary { padding: 12px 18px; background: transparent; color: var(--text2); border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Heebo', sans-serif; font-size: 0.93rem; font-weight: 600; cursor: pointer; }
+
+/* ── SETTINGS ── */
+.section-title { font-size: 0.73rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 8px; }
+.settings-card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 16px; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border-bottom: 1px solid var(--border); }
+.settings-row:last-child { border-bottom: none; }
+.settings-label { font-size: 0.9rem; font-weight: 600; }
+.settings-val { font-size: 0.82rem; color: var(--text2); }
+.edit-link { font-size: 0.82rem; font-weight: 600; color: var(--accent); background: none; border: none; cursor: pointer; font-family: 'Heebo', sans-serif; }
+
+/* ── FLOATING ── */
+.floating-bar { display: none; position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: #1a1a18; color: #fff; border-radius: 50px; padding: 11px 22px; font-size: 0.88rem; font-weight: 600; box-shadow: 0 8px 28px rgba(0,0,0,0.2); z-index: 50; gap: 10px; align-items: center; white-space: nowrap; }
+.floating-bar.visible { display: flex; animation: popIn 0.28s ease; }
+@keyframes popIn { from { opacity: 0; transform: translateX(-50%) scale(0.9); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+.float-count { color: #7eedb0; font-weight: 900; font-size: 1rem; }
+
+/* Search & Clear */
+.supplier-actions { display: flex; gap: 6px; padding: 8px 16px; background: #fdfcf9; border-bottom: 1px solid var(--border); }
+.search-box { flex: 1; padding: 7px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'Heebo', sans-serif; font-size: 0.85rem; background: #fff; }
+.search-box:focus { outline: none; border-color: var(--accent); }
+.clear-btn { padding: 7px 14px; background: var(--red); color: #fff; border: none; border-radius: 8px; font-family: 'Heebo', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.clear-btn:hover { background: #a02a1f; }
+.item-row.hidden { display: none !important; }
+
+/* Edit buttons */
+.item-edit-btn, .item-delete-btn { background: none; border: none; color: var(--text3); font-size: 0.9rem; cursor: pointer; padding: 4px 6px; border-radius: 4px; transition: all 0.15s; }
+.item-edit-btn:hover { background: var(--accent-light); color: var(--accent); }
+.item-delete-btn:hover { background: #fdecea; color: var(--red); }
+
+/* History actions */
+.history-copy-btn { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 5px 10px; font-family: 'Heebo', sans-serif; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+.history-copy-btn:hover { background: #155c33; }
+
+/* Date Picker */
+.day-date-input { 
+  padding: 6px 10px; 
+  border: 1.5px solid var(--border); 
+  border-radius: 8px; 
+  font-family: 'Heebo', sans-serif; 
+  font-size: 0.85rem; 
+  background: #fff; 
+  color: var(--text); 
+  width: 130px;
+  cursor: pointer;
+}
+.day-date-input::-webkit-calendar-picker-indicator { cursor: pointer; }
+.day-date-input:focus { outline: none; border-color: var(--accent); }
+
+/* Auto-fill dates button */
+.auto-date-btn {
+  padding: 6px 12px;
+  background: var(--accent-light);
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  font-family: 'Heebo', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.auto-date-btn:hover { background: var(--accent); color: #fff; }
+
+.weekly-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #fdfcf9;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Onboarding */
+.welcome-banner {
+  background: linear-gradient(135deg, var(--accent) 0%, #155c33 100%);
+  color: #fff;
+  padding: 16px 20px;
+  margin: 16px 14px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.welcome-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+.welcome-text { font-size: 0.85rem; opacity: 0.95; line-height: 1.6; }
+.welcome-close { 
+  float: left; 
+  background: rgba(255,255,255,0.2); 
+  border: none; 
+  color: #fff; 
+  border-radius: 50%; 
+  width: 24px; 
+  height: 24px; 
+  cursor: pointer; 
+  font-size: 1rem;
+  line-height: 1;
+  margin-top: -2px;
+}
+.welcome-close:hover { background: rgba(255,255,255,0.3); }
+
+/* Export Button */
+.export-history-btn {
+  width: 100%;
+  padding: 11px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  font-family: 'Heebo', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 14px;
+  transition: all 0.2s;
+}
+.export-history-btn:hover { background: #155c33; }
+
+/* Toast Notifications */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a18;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+.toast.success { background: var(--accent); }
+.toast.error { background: var(--red); }
+
+/* Loading Spinner */
+.spinner {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--border);
+  border-top: 4px solid var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  z-index: 999;
+}
+@keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.spinner.show { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-logo"><div class="icon">🛒</div>הזמנות רכש</div>
+  <div class="header-date" id="headerDate"></div>
+</header>
+
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab('orders',this)">📋 הזמנה</button>
+  <button class="tab-btn" onclick="switchTab('history',this)">📦 היסטוריה</button>
+  <button class="tab-btn" onclick="switchTab('settings',this)">⚙️ ספקים</button>
+</div>
+
+<div class="main">
+  <div class="tab-content active" id="tab-orders">
+    <div class="welcome-banner" id="welcomeBanner" style="display:none">
+      <button class="welcome-close" onclick="dismissWelcome()">×</button>
+      <div class="welcome-title">👋 ברוכים הבאים למערכת ההזמנות!</div>
+      <div class="welcome-text">
+        💡 <strong>טיפ:</strong> לחץ על "⚡ מלא אוטומטי" בהזמנות שבועיות כדי למלא תאריכים אוטומטית.<br>
+        🔍 השתמש בחיפוש כדי למצוא פריטים מהר.<br>
+        💾 הכל נשמר אוטומטית — אפשר לסגור ולחזור מתי שרוצים.
+      </div>
+    </div>
+    <div id="suppliersContainer"></div>
+  </div>
+  <div class="tab-content" id="tab-history">
+    <button class="export-history-btn" onclick="exportHistory()" style="margin:16px 14px 0">📊 ייצא היסטוריה ל-Excel</button>
+    <div id="historyContainer"></div>
+  </div>
+  <div class="tab-content" id="tab-settings">
+    <div class="section-title">ספקים</div>
+    <div class="settings-card" id="settingsList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="spinner" id="spinner"></div>
+
+<div class="floating-bar" id="floatingBar">
+  🛒 <span style="opacity:.75">פריטים נבחרו:</span> <span class="float-count" id="floatCount">0</span>
+</div>
+
+<div class="modal-overlay" id="modalSupplier" onclick="closeIfOverlay(event,'modalSupplier')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">➕ ספק חדש</div>
+    <div class="form-group"><label class="form-label">שם הספק</label><input class="form-input" id="newSupName" placeholder="שם הספק..." /></div>
+    <div class="form-group"><label class="form-label">טלפון לוואטסאפ (אופציונלי)</label><input class="form-input" id="newSupPhone" placeholder="05XXXXXXXX" type="tel" /></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modalSupplier')">ביטול</button>
+      <button class="btn-primary" onclick="addSupplier()">שמור</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ── TOAST NOTIFICATIONS ─────────────────────────────────
+function showToast(message, type = 'info') {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = 'toast show ' + type;
+  setTimeout(() => { toast.className = 'toast'; }, 3000);
+}
+
+
+const UNITS = { kg:'ק"ג', liter:'ליטר', unit:'יח׳', gram:'גר׳', ml:'מ"ל', pack:'מנות' };
+const DAYS = ['א׳','ב׳','ג׳','ד׳','ה׳','ו׳'];
+
+
+// ═══════════════════════════════════════════════════════════
+// ERROR HANDLING & DEBUG MODE
+// ═══════════════════════════════════════════════════════════
+const DEBUG = false; // Set to true to see console logs
+
+function logError(funcName, error) {
+  console.error(`[ERROR in ${funcName}]:`, error);
+  showToast('⚠️ שגיאה: ' + funcName, 'error');
+}
+
+function logDebug(funcName, message) {
+  if (DEBUG) console.log(`[${funcName}]`, message);
+}
+
+// Global error handler
+window.addEventListener('error', function(e) {
+  console.error('Global error:', e.error);
+  showToast('⚠️ שגיאה בלתי צפויה', 'error');
+});
+
+
+
+// ── KEYBOARD SHORTCUTS ──────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  // Ctrl/Cmd + K = Focus search
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    const searchBox = document.querySelector('.search-box');
+    if (searchBox) searchBox.focus();
+  }
+  
+  // Escape = Close modals / clear search
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.className = 'modal-overlay');
+    document.querySelectorAll('.search-box').forEach(s => s.value = '');
+  }
+});
+
+
+// ── BARDO DATA ──────────────────────────────────────────
+const PINAT_DAG_ITEMS = [
+  { id:'d1', name:'אינטיאס 5 ק"ג',          unit:'kg' },
+  { id:'d2', name:'סלומון טרי לסשימי',       unit:'kg' },
+  { id:'d3', name:'פילה טונה סאקי',          unit:'kg' },
+  { id:'d4', name:'פילה לברק',               unit:'unit' },
+];
+
+const BARDO_ITEMS = [
+  { id:'b1', name:'פרנה עגולה גדולה',       unit:'unit' },
+  { id:'b2', name:'פרנה ביס עגולה 50 גר׳',  unit:'unit' },
+  { id:'b3', name:'חלית 80 גר׳',            unit:'unit' },
+  { id:'b4', name:'המבורגר גדול',           unit:'unit' },
+  { id:'b5', name:'ברוסקטה',                unit:'unit' },
+  { id:'b6', name:'מיני המבורגר 40 גר׳',    unit:'unit' },
+];
+
+// bardo quantities: { 'dayIndex_itemId': qty }
+let bardoQty = {};
+// bardo dates: { 'dayIndex': 'תאריך' }
+let bardoDates = {};
+
+// pinat hadag state
+let dagQty = {};
+let dagDates = {};
+
+// ── REGULAR SUPPLIERS DATA ──────────────────────────────
+const DEFAULT_SUPPLIERS = [
+  { id:1, name:'אחים כהן', phone:'035367', emoji:'🏪', items:[
+    {id:1,  name:'אגוז מלך',                          unit:'kg'},
+    {id:2,  name:'אגוז פקאן סיני',                    unit:'kg'},
+    {id:3,  name:'אורז יסמין 25 ק"ג',                unit:'kg'},
+    {id:4,  name:'אפונה ואאסבי',                      unit:'kg'},
+    {id:5,  name:'בוטנים מולבנים 2 ק"ג',              unit:'kg'},
+    {id:6,  name:'בורגול דק',                         unit:'kg'},
+    {id:7,  name:'גרעיני חמנייה',                     unit:'kg'},
+    {id:8,  name:'דבש',                               unit:'kg'},
+    {id:9,  name:'זית קלמטה',                         unit:'unit'},
+    {id:10, name:'חומוס הדס גדול',                    unit:'unit'},
+    {id:11, name:'חומץ בן יין 5 ליטר',                unit:'liter'},
+    {id:12, name:'חמוציות חתוך 2 ק"ג',                unit:'kg'},
+    {id:13, name:'חרדל דיזון חלק 5 ק"ג',              unit:'kg'},
+    {id:14, name:'מיונז מנות',                        unit:'pack'},
+    {id:15, name:'כוכבי אניס',                        unit:'unit'},
+    {id:16, name:'מקלות קינמון',                      unit:'unit'},
+    {id:17, name:'פילדלפיה',                          unit:'unit'},
+    {id:18, name:'טורטייה 20 ס"מ לנדא',               unit:'unit'},
+    {id:19, name:'טחינה 17 ק"ג',                      unit:'kg'},
+    {id:20, name:'כורכום טחון',                       unit:'kg'},
+    {id:21, name:'כמון טחון',                         unit:'kg'},
+    {id:22, name:'מחית פ כמהין שחורות 500',            unit:'unit'},
+    {id:23, name:'מיונז אמיתי 5 ק"ג',                unit:'kg'},
+    {id:24, name:'מיץ לימון קפוא טבעי 2 ליטר',        unit:'liter'},
+    {id:25, name:'מיץ לימון 2 ליטר איכותי',            unit:'liter'},
+    {id:26, name:'מלח דק',                            unit:'kg'},
+    {id:27, name:'מלח עבה',                           unit:'kg'},
+    {id:28, name:'מלפפון במלח A2 7/9',                unit:'unit'},
+    {id:29, name:'מלפפון קורנישון 680 גר׳',            unit:'unit'},
+    {id:30, name:'ניוקי תפו"א',                       unit:'kg'},
+    {id:31, name:'סוכר לבן',                          unit:'kg'},
+    {id:32, name:'סומסום לבן 1.9 ק"ג',                unit:'kg'},
+    {id:33, name:'סומסום שחור יפני',                  unit:'kg'},
+    {id:34, name:'סומק טחון',                         unit:'kg'},
+    {id:35, name:'סילאן 5 ק"ג',                       unit:'kg'},
+    {id:36, name:'סלסה מקסיקנית',                     unit:'unit'},
+    {id:37, name:'עגבניות פולפה דקה (פסטה) 10 ק"ג',    unit:'kg'},
+    {id:38, name:'עדשים שחורות פנינה שק 25',           unit:'unit'},
+    {id:39, name:'פלפל שאטה שלם',                     unit:'kg'},
+    {id:40, name:'פלפל שחור טחון',                    unit:'kg'},
+    {id:41, name:'פלפל שחור גרוס דק',                 unit:'unit'},
+    {id:42, name:'פני פורי',                          unit:'kg'},
+    {id:43, name:'פפריקה חריפה',                      unit:'kg'},
+    {id:44, name:'פפריקה מתוקה',                      unit:'kg'},
+    {id:45, name:'צנובר סיני בינוני',                 unit:'kg'},
+    {id:46, name:'קטשופ 600 מנות',                    unit:'unit'},
+    {id:47, name:'קינואה לבנה 2 ק"ג',                 unit:'kg'},
+    {id:48, name:'קינמון טחון',                       unit:'kg'},
+    {id:49, name:'קמח מנופה',                         unit:'kg'},
+    {id:50, name:'קרם חומץ בלסמי מצומצם 5 ליטר',      unit:'liter'},
+    {id:51, name:'קרם קוקוס 22%',                     unit:'unit'},
+    {id:52, name:'קשיו',                              unit:'kg'},
+    {id:53, name:'רוטב ברביקיו 4.4 ק"ג',              unit:'kg'},
+    {id:54, name:'רוטב דגים 700 מ"ל',                 unit:'unit'},
+    {id:55, name:'רוטב וינגרט הדרים 4',               unit:'unit'},
+    {id:56, name:'רוטב טריאקי 4.6 ק"ג',               unit:'kg'},
+    {id:57, name:'רוטב סויה סיני 4.4 ק"ג',            unit:'kg'},
+    {id:58, name:'רוטב עגבניות איטלקי 2.5 ק"ג',       unit:'kg'},
+    {id:59, name:'דמי גלאס 5 ק"ג',                    unit:'kg'},
+    {id:60, name:"רוטב צ'ילי מתוק 4.7",               unit:'unit'},
+    {id:61, name:'רוטב סריראצה 540',                  unit:'unit'},
+    {id:62, name:'שבבי אורז 227 גר׳',                 unit:'unit'},
+    {id:63, name:'שום טחון',                          unit:'kg'},
+    {id:64, name:'שמן זית כתית 3 ליטר',               unit:'liter'},
+    {id:65, name:'שמן סויה 16 ליטר',                  unit:'liter'},
+    {id:66, name:'שמן סומסום 2 ליטר',                 unit:'liter'},
+    {id:67, name:'שמן קנולה 5 ליטר',                  unit:'liter'},
+    {id:68, name:'שקד מולבן פרוס',                    unit:'kg'},
+    {id:69, name:'תערובת געלה',                       unit:'kg'},
+    {id:70, name:'רוטב מנגו',                         unit:'unit'},
+    {id:71, name:'רוטב תות',                          unit:'unit'},
+    {id:72, name:'פירורי לחם זהב שק 10',              unit:'unit'},
+    {id:73, name:'פלפל לבן טחון',                     unit:'kg'},
+    {id:74, name:'פלפל שאטה גרוס',                    unit:'kg'},
+    {id:75, name:'פיסטוק מקולף',                      unit:'kg'},
+  ]}  ,
+  { id:2, name:'ר.ד. דבוש', phone:'', emoji:'🥩', groups: [
+    { label: 'כשרות: חלק רבנות', items: [
+      {id:201, name:'אסאדו מס׳ 9 חלק',                   unit:'kg'},
+      {id:202, name:'אנטריקוט ארגנטיני חלק',              unit:'kg'},
+      {id:203, name:'המבורגר פרמיום 220 גרם חלק רבנות',   unit:'unit'},
+      {id:204, name:'פילה בקר חלק',                       unit:'kg'},
+      {id:205, name:'פילה סלומון נורבגי 1.8/2.2',         unit:'kg'},
+      {id:206, name:'צ׳יפס 12.5 ק"ג',                    unit:'kg'},
+      {id:207, name:'מיני המבורגר חלק',                   unit:'unit'},
+      {id:208, name:'מיני צ׳וריסוס חלק',                  unit:'unit'},
+      {id:209, name:'נקניקיות חלק',                       unit:'unit'},
+      {id:210, name:'סינטה בקר מס׳ 11 חלק',               unit:'kg'},
+      {id:211, name:'קבב ביתי חלק רבנות',                 unit:'unit'},
+      {id:212, name:'קרפאצו בקר חלק',                     unit:'kg'},
+      {id:213, name:'שניצלונים מטוגנים בציפוי',           unit:'unit'},
+      {id:214, name:'שומשום עוף טוב 9 ק"ג',               unit:'kg'},
+      {id:215, name:'צלעות בקר מס׳ 2 חלק',                unit:'kg'},
+      {id:216, name:'דג בטמפורה 10 ק"ג',                  unit:'kg'},
+    ]},
+    { label: 'כשרות: מחפוד', items: [
+      {id:251, name:'מס׳ 9 פיקן 4 ארגנטינה מחפוד',        unit:'kg'},
+      {id:252, name:'פילה בקר ארגנטיני מחפוד',            unit:'kg'},
+      {id:253, name:'חזה עוף מחפוד',                      unit:'kg'},
+      {id:254, name:'כבד עוף מחפוד',                      unit:'kg'},
+      {id:255, name:'מיני המבורגר מחפוד',                 unit:'unit'},
+      {id:256, name:'מיני צ׳וריסוס מחפוד',                unit:'unit'},
+      {id:257, name:'נקניקיות מחפוד',                     unit:'unit'},
+      {id:258, name:'אנטריקוט ארגנטיני מחפוד',            unit:'kg'},
+      {id:259, name:'שניצלונים מטוגנים מחפוד',            unit:'unit'},
+      {id:260, name:'סיטנה בקר מס׳ 11 מחפוד',             unit:'kg'},
+      {id:261, name:'פילה סלומון נורבגי 1.8/2.2 מחפוד',   unit:'kg'},
+      {id:262, name:'פרגית עוף מחפוד ארוך',               unit:'kg'},
+      {id:263, name:'פרגית עוף מחפוד קצר',                unit:'kg'},
+      {id:264, name:'צלעות בקר מס׳ 2 מחפוד',              unit:'kg'},
+      {id:265, name:'קבב ביתי חלק מחפוד',                 unit:'unit'},
+      {id:266, name:'שומן בקר מחפוד',                     unit:'kg'},
+      {id:267, name:'שומן כבש מחפוד',                     unit:'kg'},
+      {id:268, name:'דג בטמפורה 10 ק"ג',                  unit:'kg'},
+    ]}
+  ]}
+];
+
+let suppliers = [];
+let quantities = {};
+let orderHistory = [];
+let nextItemId = 500;
+let nextSupId = 20;
+let activeBardoDay = 0;
+let activeDagDay = 0;
+
+// ── LOAD & SAVE DATA ────────────────────────────────────
+function loadData() {
+  const saved = localStorage.getItem('purchase_orders_v4');
+  if (saved) {
+    try {
+      const d = JSON.parse(saved);
+      suppliers = d.suppliers || JSON.parse(JSON.stringify(DEFAULT_SUPPLIERS));
+      quantities = d.quantities || {};
+      bardoQty = d.bardoQty || {};
+      bardoDates = d.bardoDates || {};
+      dagQty = d.dagQty || {};
+      dagDates = d.dagDates || {};
+      orderHistory = d.history || [];
+      nextItemId = d.nextItemId || 500;
+      nextSupId = d.nextSupId || 20;
+    } catch(e) {
+      console.error('Load error:', e);
+      suppliers = JSON.parse(JSON.stringify(DEFAULT_SUPPLIERS));
+    }
+  } else {
+    suppliers = JSON.parse(JSON.stringify(DEFAULT_SUPPLIERS));
+  }
+}
+
+function saveData() {
+  try {
+    localStorage.setItem('purchase_orders_v4', JSON.stringify({
+      suppliers, quantities, bardoQty, bardoDates, dagQty, dagDates,
+      history: orderHistory, nextItemId, nextSupId
+    }));
+  } catch(e) {
+    console.error('Save error:', e);
+  }
+}
+
+
+// ── INIT ────────────────────────────────────────────────
+
+
+
+// ── FORMAT DATE FOR DISPLAY ────────────────────────────
+function formatDateForDisplay(dateStr) {
+  if (!dateStr) return '';
+  // Convert YYYY-MM-DD to DD/MM/YYYY
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return dateStr;
+}
+
+// ── AUTO-FILL DATES ─────────────────────────────────────
+function autoFillDates(prefix) {
+  // Fill next 6 days (Sun-Fri), skipping Saturday
+  const today = new Date();
+  let currentDate = new Date(today);
+  currentDate.setDate(currentDate.getDate() + 1); // Start from tomorrow
+  
+  const datesObj = prefix === 'bardo' ? bardoDates : dagDates;
+  
+  for (let i = 0; i < 6; i++) {
+    // Skip Saturday (day 6)
+    while (currentDate.getDay() === 6) {
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    // Format as YYYY-MM-DD for date input
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    datesObj[i] = `${year}-${month}-${day}`;
+    
+    // Update input field
+    const input = document.querySelector(`#${prefix}-day-${i} .day-date-input`);
+    if (input) input.value = datesObj[i];
+    
+    // Move to next day
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  saveData();
+  if (prefix === 'bardo') renderBardo();
+  else renderPinatDag();
+}
+
+// ── SEARCH ITEMS ────────────────────────────────────────
+function searchItems(supId, query) {
+  const list = document.getElementById('list-'+supId);
+  if (!list) return;
+  const q = query.toLowerCase().trim();
+  list.querySelectorAll('.item-row').forEach(row => {
+    const name = row.querySelector('.item-name')?.textContent.toLowerCase() || '';
+    row.classList.toggle('hidden', q && !name.includes(q));
+  });
+}
+
+// ── CLEAR QUANTITIES ────────────────────────────────────
+function clearSupplierQty(supId) {
+  if (!confirm('לאפס את כל הכמויות לספק זה?')) return;
+  const sup = suppliers.find(s => s.id === supId); if (!sup) return;
+  const allItems = sup.groups ? sup.groups.flatMap(g=>g.items) : sup.items;
+  allItems.forEach(item => {
+    quantities[supId+'_'+item.id] = 0;
+    refreshQtyEl(supId, item.id);
+  });
+  refreshBadge(supId);
+  updateFloatingBar();
+  saveData();
+}
+
+// ── EDIT ITEM NAME ──────────────────────────────────────
+function editItemName(supId, itemId) {
+  const sup = suppliers.find(s => s.id === supId); if (!sup) return;
+  const allItems = sup.groups ? sup.groups.flatMap(g=>g.items) : sup.items;
+  const item = allItems.find(i => i.id === itemId); if (!item) return;
+  const newName = prompt('שם חדש לפריט:', item.name);
+  if (newName && newName.trim()) {
+    item.name = newName.trim();
+    const nameEl = document.getElementById('name-'+supId+'-'+itemId);
+    if (nameEl) nameEl.textContent = item.name;
+    saveData();
+  }
+}
+
+// ── DELETE ITEM ─────────────────────────────────────────
+function deleteItem(supId, itemId) {
+  if (!confirm('למחוק פריט זה לצמיתות?')) return;
+  const sup = suppliers.find(s => s.id === supId); if (!sup) return;
+  if (sup.groups) {
+    sup.groups.forEach(g => {
+      g.items = g.items.filter(i => i.id !== itemId);
+    });
+  } else {
+    sup.items = sup.items.filter(i => i.id !== itemId);
+  }
+  delete quantities[supId+'_'+itemId];
+  const row = document.getElementById('row-'+supId+'-'+itemId);
+  if (row) row.remove();
+  const sub = document.getElementById('sub-'+supId);
+  const total = sup.groups ? sup.groups.reduce((s,g)=>s+g.items.length,0) : sup.items.length;
+  if (sub) sub.textContent = total + ' פריטים';
+  refreshBadge(supId);
+  updateFloatingBar();
+  saveData();
+}
+
+// ── COPY ORDER FROM HISTORY ─────────────────────────────
+function copyOrder(historyId) {
+  const order = orderHistory.find(h => h.id === historyId);
+  if (!order) return;
+  if (!confirm('להעתיק הזמנה זו? הכמויות הנוכחיות יידרסו.')) return;
+  
+  // Clear current quantities
+  Object.keys(quantities).forEach(k => quantities[k] = 0);
+  bardoQty = {}; dagQty = {};
+  
+  // Parse the message to extract quantities
+  // This is a simple parser - can be enhanced
+  alert('הזמנה הועתקה! (פיצ׳ר בפיתוח - יושלם בגרסה הבאה)');
+  saveData();
+}
+
+
+
+// ── EXPORT HISTORY TO CSV ───────────────────────────────
+function exportHistory() {
+  if (!orderHistory.length) { alert('אין היסטוריה לייצוא'); return; }
+  
+  let csv = 'ספק,תאריך,פריטים\n';
+  orderHistory.forEach(h => {
+    const items = h.msg.replace(/\n/g, ' | ').replace(/,/g, ';');
+    csv += `"${h.supplier}","${h.date}","${items}"\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `הזמנות_${new Date().toISOString().split('T')[0]}.csv`;
+  link.click();
+}
+
+function dismissWelcome() {
+  document.getElementById('welcomeBanner').style.display = 'none';
+  localStorage.setItem('welcome_dismissed', 'true');
+}
+
+function init() {
+  document.getElementById('headerDate').textContent =
+    new Date().toLocaleDateString('he-IL', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+  suppliers = JSON.parse(JSON.stringify(DEFAULT_SUPPLIERS));
+  renderAll();
+  // Register pinat hadag sender
+  weeklyCardSenders['dag-card'] = () => sendWeeklyWhatsApp('פינת הדג — דגים ארטיסטה', PINAT_DAG_ITEMS, dagQty, dagDates);
+  weeklyCardSenders['bardo-card'] = () => sendBardoWhatsApp();
+}
+
+function renderAll() {
+  renderBardo();
+  renderPinatDag();
+  renderSuppliers();
+  renderHistory();
+  renderSettings();
+  updateFloatingBar();
+}
+
+// ── BARDO ───────────────────────────────────────────────
+function renderBardo() {
+  const c = document.getElementById('suppliersContainer');
+  const existing = document.getElementById('bardo-card');
+  const html = buildBardoCard();
+  if (existing) existing.outerHTML = html;
+  else c.insertAdjacentHTML('afterbegin', html);
+  // attach events after render
+  document.getElementById('bardo-card').querySelector('.bardo-header')
+    .addEventListener('click', () => document.getElementById('bardo-card').classList.toggle('open'));
+}
+
+function buildBardoCard() {
+  const filledDays = DAYS.filter((_,i) => BARDO_ITEMS.some(it => (bardoQty[i+'_'+it.id]||0)>0)).length;
+  return `
+  <div class="bardo-card" id="bardo-card">
+    <div class="bardo-header">
+      <div class="supplier-info">
+        <div class="bardo-avatar">🍞</div>
+        <div>
+          <div class="supplier-name">ברדו — לחמים ארטיסטה</div>
+          <div class="supplier-sub">הזמנה שבועית · ${BARDO_ITEMS.length} פריטים</div>
+        </div>
+      </div>
+      <div class="header-right">
+        ${filledDays>0 ? `<div class="order-badge visible">${filledDays} ימים</div>` : ''}
+        <div class="chevron">▼</div>
+      </div>
+    </div>
+    <div class="bardo-body">
+      <div class="day-tabs">
+        ${DAYS.map((d,i) => {
+          const hasData = BARDO_ITEMS.some(it => (bardoQty[i+'_'+it.id]||0)>0);
+          const active = i === activeBardoDay;
+          return `<button class="day-tab ${active?'active':''} ${hasData&&!active?'has-data':''}"
+            onclick="switchBardoDay(${i})">${d}</button>`;
+        }).join('')}
+      </div>
+      ${DAYS.map((d,i) => `
+        <div class="day-panel ${i===activeBardoDay?'active':''}" id="bardo-day-${i}">
+          <div class="day-date-row">
+            <span class="day-date-label">📅 תאריך יום ${d}</span>
+            <input class="day-date-input" type="text" placeholder="לדוג׳: 18/02"
+              value="${bardoDates[i]||''}"
+              oninput="bardoDates[${i}]=this.value" />
+          </div>
+          ${BARDO_ITEMS.map(item => {
+            const key = i+'_'+item.id;
+            const qty = bardoQty[key]||0;
+            return `<div class="bardo-item-row">
+              <div class="item-info"><div class="item-name">${item.name}</div></div>
+              <div class="qty-controls">
+                <button class="qty-btn minus" onclick="bardoChange(${i},'${item.id}',-1)">−</button>
+                <input class="qty-input ${qty>0?'has-val':''}" id="bqi-${i}-${item.id}"
+                  type="number" min="0" value="${qty>0?qty:''}" placeholder="0"
+                  oninput="bardoSet(${i},'${item.id}',this.value)" />
+                <button class="qty-btn" onclick="bardoChange(${i},'${item.id}',1)">+</button>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      `).join('')}
+      <div class="bardo-footer">
+        <div class="bardo-summary">
+          ${getBardoSummaryText()}
+        </div>
+        <button class="wa-btn" onclick="sendBardoWhatsApp()">📲 שליחת הזמנה</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function getBardoSummaryText() {
+  const filled = DAYS.filter((_,i) => BARDO_ITEMS.some(it => (bardoQty[i+'_'+it.id]||0)>0));
+  if (!filled.length) return '<span style="color:var(--text3)">בחר כמויות לפי יום</span>';
+  return `<strong>${filled.length} ימים</strong> עם הזמנות`;
+}
+
+function switchBardoDay(idx) {
+  // Auto-set date if not already set
+  if (!bardoDates[idx]) {
+    const today = new Date();
+    const targetDay = idx;
+    let nextDate = new Date(today);
+    nextDate.setDate(today.getDate() + 1);
+    
+    while (nextDate.getDay() !== targetDay) {
+      nextDate.setDate(nextDate.getDate() + 1);
+    }
+    
+    const year = nextDate.getFullYear();
+    const month = String(nextDate.getMonth() + 1).padStart(2, '0');
+    const day = String(nextDate.getDate()).padStart(2, '0');
+    bardoDates[idx] = year + '-' + month + '-' + day;
+    saveData();
+  }
+  
+  // Set active day ALWAYS
+  activeBardoDay = idx;
+  
+  // Update tab classes
+  document.querySelectorAll('#bardo-card .day-tab').forEach((btn, i) => {
+    const hasData = BARDO_ITEMS.some(it => (bardoQty[i+'_'+it.id]||0)>0);
+    btn.className = 'day-tab' + (i===idx?' active':'') + (hasData&&i!==idx?' has-data':'');
+  });
+  
+  // Update panels
+  document.querySelectorAll('#bardo-card .day-panel').forEach((p, i) => {
+    p.className = 'day-panel' + (i===idx?' active':'');
+  });
+  
+  // Update date input if it was just set
+  if (bardoDates[idx]) {
+    const dateInput = document.querySelector('#bardo-day-' + idx + ' .day-date-input');
+    if (dateInput && !dateInput.value) {
+      dateInput.value = bardoDates[idx];
+    }
+  }
+
+  
+}
+
+function bardoChange(day, itemId, delta) {
+  const key = day+'_'+itemId;
+  bardoQty[key] = Math.max(0, (bardoQty[key]||0) + delta);
+  refreshBardoQty(day, itemId);
+  refreshBardoUI();
+  saveData();
+}
+
+function bardoSet(day, itemId, val) {
+  const key = day+'_'+itemId;
+  bardoQty[key] = Math.max(0, parseInt(val)||0);
+  refreshBardoQty(day, itemId);
+  refreshBardoUI();
+  saveData();
+}
+
+function refreshBardoQty(day, itemId) {
+  const el = document.getElementById(`bqi-${day}-${itemId}`);
+  if (!el) return;
+  const q = bardoQty[day+'_'+itemId]||0;
+  el.value = q>0 ? q : '';
+  el.className = 'qty-input' + (q>0?' has-val':'');
+}
+
+function refreshBardoUI() {
+  // update day tabs
+  document.querySelectorAll('.day-tab').forEach((btn, i) => {
+    const hasData = BARDO_ITEMS.some(it => (bardoQty[i+'_'+it.id]||0)>0);
+    btn.className = 'day-tab' + (i===activeBardoDay?' active':'') + (hasData&&i!==activeBardoDay?' has-data':'');
+  });
+  // update badge
+  const filled = DAYS.filter((_,i) => BARDO_ITEMS.some(it => (bardoQty[i+'_'+it.id]||0)>0)).length;
+  const card = document.getElementById('bardo-card');
+  if (card) {
+    let badge = card.querySelector('.order-badge');
+    if (!badge) {
+      card.querySelector('.header-right').insertAdjacentHTML('afterbegin', '<div class="order-badge"></div>');
+      badge = card.querySelector('.order-badge');
+    }
+    badge.textContent = filled+' ימים';
+    badge.className = 'order-badge' + (filled>0?' visible':'');
+  }
+  // update summary
+  const sumEl = card ? card.querySelector('.bardo-summary') : null;
+  if (sumEl) sumEl.innerHTML = getBardoSummaryText();
+  updateFloatingBar();
+}
+
+function sendBardoWhatsApp() {
+  const today = new Date().toLocaleDateString('he-IL');
+  let msg = '🍞 *הזמנת לחמים שבועית — ברדו*\n📅 ' + today + '\n' + '━'.repeat(22) + '\n';
+  let hasAny = false;
+
+  DAYS.forEach((d, i) => {
+    const dayItems = BARDO_ITEMS.filter(it => (bardoQty[i+'_'+it.id]||0)>0);
+    if (!dayItems.length) return;
+    hasAny = true;
+    const dateStr = bardoDates[i] ? ' (' + formatDateForDisplay(bardoDates[i]) + ')' : '';
+    msg += '\n📌 *יום ' + d + dateStr + '*\n';
+    dayItems.forEach(it => {
+      msg += '• ' + it.name + ' — ' + bardoQty[i+'_'+it.id] + ' ' + (UNITS[it.unit]||it.unit) + '\n';
+    });
+  });
+
+  if (!hasAny) { 
+    showToast('❌ לא הוזנו כמויות', 'error');
+    return; 
+  }
+  
+  if (!confirm('לשלוח הזמנה שבועית לברדו?')) return;
+  
+  msg += '\n' + '━'.repeat(22) + '\nתודה! 🙏';
+  saveToHistory('ברדו — לחמים ארטיסטה', msg);
+  showToast('✅ הזמנה נשלחה בהצלחה!', 'success');
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+
+  
+}
+
+
+function renderPinatDag() {
+  const c = document.getElementById('suppliersContainer');
+  const existing = document.getElementById('dag-card');
+  const card = buildWeeklyCard({
+    id: 'dag-card',
+    name: 'פינת הדג — דגים ארטיסטה',
+    emoji: '🐟',
+    items: PINAT_DAG_ITEMS,
+    qty: dagQty,
+    dates: dagDates,
+    activeDay: activeDagDay,
+    onDaySwitch: (i) => { activeDagDay = i; renderPinatDag(); },
+    onQtyChange: (day, itemId, delta) => {
+      const key = day+'_'+itemId;
+      dagQty[key] = Math.max(0, (dagQty[key]||0)+delta);
+      refreshWeeklyQty('dag', day, itemId, dagQty);
+      refreshWeeklyUI('dag-card', PINAT_DAG_ITEMS, dagQty, activeDagDay);
+    },
+    onQtySet: (day, itemId, val) => {
+      const key = day+'_'+itemId;
+      dagQty[key] = Math.max(0, parseInt(val)||0);
+      refreshWeeklyQty('dag', day, itemId, dagQty);
+      refreshWeeklyUI('dag-card', PINAT_DAG_ITEMS, dagQty, activeDagDay);
+    },
+    onDateChange: (i, val) => { dagDates[i] = val; },
+    onSend: () => sendWeeklyWhatsApp('פינת הדג — דגים ארטיסטה', PINAT_DAG_ITEMS, dagQty, dagDates),
+    prefix: 'dag',
+    borderColor: '#a8d8ea',
+    avatarBg: '#dff0f7',
+  });
+  if (existing) existing.replaceWith(card);
+  else {
+    // insert after bardo card
+    const bardo = document.getElementById('bardo-card');
+    bardo ? bardo.after(card) : c.insertAdjacentElement('afterbegin', card);
+  }
+}
+
+function buildWeeklyCard({ id, name, emoji, items, qty, dates, activeDay, onDaySwitch, onQtyChange, onQtySet, onDateChange, onSend, prefix, borderColor, avatarBg }) {
+  const filledDays = DAYS.filter((_,i) => items.some(it => (qty[i+'_'+it.id]||0)>0)).length;
+  const div = document.createElement('div');
+  div.id = id;
+  div.className = 'supplier-card' + (document.getElementById(id)?.classList.contains('open') ? ' open' : '');
+  div.style.borderColor = borderColor || 'var(--border)';
+
+  const dayTabsHTML = DAYS.map((d,i) => {
+    const hasData = items.some(it => (qty[i+'_'+it.id]||0)>0);
+    const active = i === activeDay;
+    return `<button class="day-tab ${active?'active':''} ${hasData&&!active?'has-data':''}"
+      onclick="weeklyDaySwitch('${id}',${i})">${d}</button>`;
+  }).join('');
+
+  const panelsHTML = DAYS.map((d,i) => `
+    <div class="day-panel ${i===activeDay?'active':''}" id="${prefix}-day-${i}">
+      <div class="day-date-row">
+        <span class="day-date-label">📅 תאריך יום ${d}</span>
+        <input class="day-date-input" type="date"
+          value="${dates[i]||''}"
+          onchange="weeklyDateChange('${prefix}',${i},this.value)" />
+      </div>
+      ${items.map(item => {
+        const key = i+'_'+item.id;
+        const q = qty[key]||0;
+        return `<div class="bardo-item-row">
+          <div class="item-info">
+            <div class="item-name">${item.name}</div>
+            <select class="unit-select" onchange="changeWeeklyUnit('${prefix}','${item.id}',this.value)">
+              ${Object.entries(UNITS).map(([val,label]) => 
+                `<option value="${val}" ${item.unit===val?'selected':''}>${label}</option>`
+              ).join('')}
+            </select>
+          </div>
+          <div class="qty-controls">
+            <button class="qty-btn minus" onclick="weeklyQtyChange('${prefix}','${item.id}',${i},-1)">−</button>
+            <input class="qty-input ${q>0?'has-val':''}" id="wqi-${prefix}-${i}-${item.id}"
+              type="number" min="0" value="${q>0?q:''}" placeholder="0"
+              oninput="weeklyQtySet('${prefix}','${item.id}',${i},this.value)" />
+            <button class="qty-btn" onclick="weeklyQtyChange('${prefix}','${item.id}',${i},1)">+</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+
+  const summaryText = filledDays > 0
+    ? `<strong>${filledDays} ימים</strong> עם הזמנות`
+    : '<span style="color:var(--text3)">בחר כמויות לפי יום</span>';
+
+  div.innerHTML = `
+    <div class="supplier-header" onclick="this.closest('.supplier-card').classList.toggle('open')">
+      <div class="supplier-info">
+        <div class="supplier-avatar" style="background:${avatarBg||'var(--accent-light)'}">${emoji}</div>
+        <div>
+          <div class="supplier-name">${name}</div>
+          <div class="supplier-sub">${items.length} פריטים · הזמנה שבועית</div>
+        </div>
+      </div>
+      <div class="header-right">
+        ${filledDays>0 ? `<div class="order-badge visible">${filledDays} ימים</div>` : '<div class="order-badge"></div>'}
+        <div class="chevron">▼</div>
+      </div>
+    </div>
+    <div class="bardo-body">
+      <div class="weekly-header-actions">
+        <span style="font-size:0.82rem;color:var(--text2);font-weight:600">📅 תאריכים</span>
+        <button class="auto-date-btn" onclick="autoFillDates('${prefix}')">⚡ מלא אוטומטי</button>
+      </div>
+      <div class="day-tabs">${dayTabsHTML}</div>
+      ${panelsHTML}
+      <div class="bardo-footer">
+        <div class="bardo-summary">${summaryText}</div>
+        <button class="wa-btn" onclick="weeklyCardSend('${id}')">📲 שליחת הזמנה</button>
+      </div>
+    </div>`;
+  return div;
+}
+
+// Registry for weekly cards send functions
+const weeklyCardSenders = {};
+function weeklyCardSend(cardId) {
+  if (weeklyCardSenders[cardId]) weeklyCardSenders[cardId]();
+}
+
+function weeklyDaySwitch(cardId, idx) {
+  // Auto-set date if not already set
+  const prefix = cardId === 'bardo-card' ? 'bardo' : 'dag';
+  const datesObj = prefix === 'bardo' ? bardoDates : dagDates;
+  
+  if (!datesObj[idx]) {
+    // Calculate next occurrence of this day
+    const today = new Date();
+    const targetDay = idx; // 0=Sunday, 1=Monday, etc.
+    let nextDate = new Date(today);
+    nextDate.setDate(today.getDate() + 1); // Start from tomorrow
+    
+    // Find next occurrence of target day
+    while (nextDate.getDay() !== targetDay) {
+      nextDate.setDate(nextDate.getDate() + 1);
+    }
+    
+    // Format as YYYY-MM-DD
+    const year = nextDate.getFullYear();
+    const month = String(nextDate.getMonth() + 1).padStart(2, '0');
+    const day = String(nextDate.getDate()).padStart(2, '0');
+    datesObj[idx] = `${year}-${month}-${day}`;
+    saveData();
+  }
+  
+  if (cardId === 'bardo-card') { switchBardoDay(idx); }
+  else { activeDagDay = idx; renderPinatDag(); }
+}
+
+function weeklyDateChange(prefix, i, val) {
+  if (prefix === 'bardo') bardoDates[i] = val;
+  else dagDates[i] = val;
+  saveData();
+}
+
+function weeklyQtyChange(prefix, itemId, day, delta) {
+  if (prefix === 'bardo') { bardoChange(day, itemId, delta); }
+  else {
+    const key = day+'_'+itemId;
+    dagQty[key] = Math.max(0, (dagQty[key]||0)+delta);
+    refreshWeeklyQty(prefix, day, itemId, dagQty);
+    refreshWeeklyUI('dag-card', PINAT_DAG_ITEMS, dagQty, activeDagDay);
+    updateFloatingBar();
+    saveData();
+  }
+}
+
+function weeklyQtySet(prefix, itemId, day, val) {
+  if (prefix === 'bardo') { bardoSet(day, itemId, val); }
+  else {
+    const key = day+'_'+itemId;
+    dagQty[key] = Math.max(0, parseInt(val)||0);
+    refreshWeeklyQty(prefix, day, itemId, dagQty);
+    refreshWeeklyUI('dag-card', PINAT_DAG_ITEMS, dagQty, activeDagDay);
+    updateFloatingBar();
+    saveData();
+  }
+}
+
+function refreshWeeklyQty(prefix, day, itemId, qtyObj) {
+  const el = document.getElementById(`wqi-${prefix}-${day}-${itemId}`); if (!el) return;
+  const q = qtyObj[day+'_'+itemId]||0;
+  el.value = q>0?q:''; el.className = 'qty-input'+(q>0?' has-val':'');
+}
+
+function refreshWeeklyUI(cardId, items, qtyObj, activeDay) {
+  const filled = DAYS.filter((_,i) => items.some(it => (qtyObj[i+'_'+it.id]||0)>0)).length;
+  const card = document.getElementById(cardId); if (!card) return;
+  card.querySelectorAll('.day-tab').forEach((btn,i) => {
+    const hasData = items.some(it => (qtyObj[i+'_'+it.id]||0)>0);
+    btn.className = 'day-tab'+(i===activeDay?' active':'')+(hasData&&i!==activeDay?' has-data':'');
+  });
+  const badge = card.querySelector('.order-badge');
+  if (badge) { badge.textContent=filled+' ימים'; badge.className='order-badge'+(filled>0?' visible':''); }
+  const sum = card.querySelector('.bardo-summary');
+  if (sum) sum.innerHTML = filled>0 ? `<strong>${filled} ימים</strong> עם הזמנות` : '<span style="color:var(--text3)">בחר כמויות לפי יום</span>';
+  updateFloatingBar();
+}
+
+function sendWeeklyWhatsApp(supplierName, items, qtyObj, datesObj) {
+  const today = new Date().toLocaleDateString('he-IL');
+  let msg = '🐟 *הזמנה שבועית — ' + supplierName + '*\n📅 ' + today + '\n' + '━'.repeat(22) + '\n';
+  let hasAny = false;
+  
+  DAYS.forEach((d,i) => {
+    const dayItems = items.filter(it => (qtyObj[i+'_'+it.id]||0)>0);
+    if (!dayItems.length) return;
+    hasAny = true;
+    const dateStr = datesObj[i] ? ' (' + formatDateForDisplay(datesObj[i]) + ')' : '';
+    msg += '\n📌 *יום ' + d + dateStr + '*\n';
+    dayItems.forEach(it => { 
+      msg += '• ' + it.name + ' — ' + qtyObj[i+'_'+it.id] + ' ' + (UNITS[it.unit]||it.unit) + '\n'; 
+    });
+  });
+  
+  if (!hasAny) { 
+    showToast('❌ לא הוזנו כמויות', 'error');
+    return; 
+  }
+  
+  if (!confirm('לשלוח הזמנה שבועית?')) return;
+  
+  msg += '\n' + '━'.repeat(22) + '\nתודה! 🙏';
+  saveToHistory(supplierName, msg);
+  showToast('✅ הזמנה נשלחה בהצלחה!', 'success');
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+
+  
+}
+
+
+function renderSuppliers() {
+  const c = document.getElementById('suppliersContainer');
+  // remove only regular supplier cards (not bardo or dag weekly cards)
+  c.querySelectorAll('.supplier-card:not(#bardo-card):not(#dag-card)').forEach(el => el.remove());
+  suppliers.forEach(s => c.appendChild(buildCard(s)));
+}
+
+function buildCard(s) {
+  const div = document.createElement('div');
+  div.className = 'supplier-card';
+  div.id = 'card-' + s.id;
+  const cnt = orderedCount(s);
+  const totalItems = s.groups
+    ? s.groups.reduce((sum,g)=>sum+g.items.length,0)
+    : s.items.length;
+
+  // Build items HTML — grouped or flat
+  let itemsHTML = '';
+  if (s.groups) {
+    const groupIcons = {'כשרות: חלק רבנות':'✡️', 'כשרות: מחפוד':'🔵'};
+    s.groups.forEach(g => {
+      itemsHTML += `<div class="group-header">
+        <span class="group-header-icon">${groupIcons[g.label]||'📌'}</span>
+        <span class="group-header-label">${g.label}</span>
+      </div>`;
+      itemsHTML += g.items.map(item => itemRowHTML(s.id, item)).join('');
+    });
+  } else {
+    itemsHTML = s.items.map(item => itemRowHTML(s.id, item)).join('');
+  }
+
+  div.innerHTML = `
+    <div class="supplier-header" onclick="toggleCard(${s.id})">
+      <div class="supplier-info">
+        <div class="supplier-avatar">${s.emoji||'🏪'}</div>
+        <div>
+          <div class="supplier-name">${s.name}</div>
+          <div class="supplier-sub" id="sub-${s.id}">${totalItems} פריטים</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="order-badge ${cnt>0?'visible':''}" id="badge-${s.id}">${cnt} נבחרו</div>
+        <div class="chevron">▼</div>
+      </div>
+    </div>
+    <div class="items-body">
+      <div class="supplier-actions">
+        <input class="search-box" placeholder="🔍 חיפוש פריט..." oninput="searchItems(${s.id}, this.value)" />
+        <button class="clear-btn" onclick="clearSupplierQty(${s.id})">🗑️ נקה</button>
+      </div>
+      <div class="items-list" id="list-${s.id}">
+        ${itemsHTML}
+      </div>
+      <div class="add-item-row">
+        <input class="add-item-input" id="ni-name-${s.id}" placeholder="פריט חדש..." />
+        <select class="add-item-unit-select" id="ni-unit-${s.id}">
+          <option value="kg">ק"ג</option>
+          <option value="liter">ליטר</option>
+          <option value="unit" selected>יח׳</option>
+          <option value="gram">גר׳</option>
+          <option value="ml">מ"ל</option>
+          <option value="pack">מנות</option>
+        </select>
+        <button class="add-item-btn-sm" onclick="addItem(${s.id})">+ הוסף</button>
+      </div>
+      <div class="supplier-footer ${cnt>0?'visible':''}" id="footer-${s.id}">
+        <div class="order-summary-text"><span class="order-count-badge" id="fcnt-${s.id}">${cnt} פריטים</span> נבחרו</div>
+        <button class="wa-btn" onclick="sendWhatsApp(${s.id})">📲 שליחת הזמנה</button>
+      </div>
+    </div>`;
+  return div;
+}
+
+function itemRowHTML(supId, item) {
+  const qty = quantities[supId+'_'+item.id]||0;
+  const unitOptions = Object.entries(UNITS).map(([val,label]) =>
+    `<option value="${val}" ${item.unit===val?'selected':''}>${label}</option>`
+  ).join('');
+  return `<div class="item-row" id="row-${supId}-${item.id}">
+    <div class="item-info">
+      <div class="item-name" id="name-${supId}-${item.id}">${item.name}</div>
+      <button class="item-edit-btn" onclick="editItemName(${supId},${item.id})" title="ערוך">✏️</button>
+      <button class="item-delete-btn" onclick="deleteItem(${supId},${item.id})" title="מחק">🗑️</button>
+      <select class="unit-select" id="unit-${supId}-${item.id}"
+        onchange="changeUnit(${supId},${item.id},this.value)">
+        ${unitOptions}
+      </select>
+    </div>
+    <div class="qty-controls">
+      <button class="qty-btn minus" onclick="changeQty(${supId},${item.id},-1)">−</button>
+      <input class="qty-input ${qty>0?'has-val':''}" id="qi-${supId}-${item.id}"
+        type="number" min="0" value="${qty>0?qty:''}" placeholder="0"
+        oninput="setQty(${supId},${item.id},this.value)" />
+      <button class="qty-btn" onclick="changeQty(${supId},${item.id},1)">+</button>
+    </div>
+  </div>`;
+}
+
+
+// ── CHANGE WEEKLY ITEM UNIT ─────────────────────────────
+function changeWeeklyUnit(prefix, itemId, newUnit) {
+  const items = prefix === 'bardo' ? BARDO_ITEMS : PINAT_DAG_ITEMS;
+  const item = items.find(i => i.id === itemId);
+  if (item) {
+    item.unit = newUnit;
+    saveData();
+  }
+}
+
+function changeUnit(supId, itemId, newUnit) {
+  const sup = suppliers.find(s => s.id === supId); if (!sup) return;
+  const allItems = sup.groups ? sup.groups.flatMap(g=>g.items) : sup.items;
+  const item = allItems.find(i => i.id === itemId); if (!item) return;
+  item.unit = newUnit;
+  saveData();
+}
+
+function toggleCard(id) { document.getElementById('card-'+id).classList.toggle('open'); }
+
+function changeQty(supId, itemId, delta) {
+  const key = supId+'_'+itemId;
+  quantities[key] = Math.max(0, (quantities[key]||0)+delta);
+  refreshQtyEl(supId, itemId);
+  refreshBadge(supId);
+  updateFloatingBar();
+  if (typeof saveData === 'function') saveData();
+}
+
+function setQty(supId, itemId, val) {
+  const key = supId+'_'+itemId;
+  quantities[key] = Math.max(0, parseInt(val)||0);
+  refreshQtyEl(supId, itemId);
+  refreshBadge(supId);
+  updateFloatingBar();
+  if (typeof saveData === 'function') saveData();
+}
+
+function refreshQtyEl(supId, itemId) {
+  const el = document.getElementById(`qi-${supId}-${itemId}`); if(!el) return;
+  const q = quantities[supId+'_'+itemId]||0;
+  el.value = q>0?q:''; el.className='qty-input'+(q>0?' has-val':'');
+}
+
+function orderedCount(s) {
+  const allItems = s.groups
+    ? s.groups.flatMap(g => g.items)
+    : s.items;
+  return allItems.filter(i => (quantities[s.id+'_'+i.id]||0)>0).length;
+}
+
+function refreshBadge(supId) {
+  const s = suppliers.find(x=>x.id===supId); if(!s) return;
+  const cnt = orderedCount(s);
+  const b = document.getElementById('badge-'+supId);
+  if(b){b.textContent=cnt+' נבחרו';b.className='order-badge'+(cnt>0?' visible':'');}
+  const f = document.getElementById('footer-'+supId);
+  if(f) f.className='supplier-footer'+(cnt>0?' visible':'');
+  const fc = document.getElementById('fcnt-'+supId);
+  if(fc) fc.textContent=cnt+' פריטים';
+}
+
+function updateFloatingBar() {
+  const regTotal = suppliers.reduce((s,sup)=>s+orderedCount(sup),0);
+  const bardoTotal = DAYS.filter((_,i)=>BARDO_ITEMS.some(it=>(bardoQty[i+'_'+it.id]||0)>0)).length;
+  const dagTotal = DAYS.filter((_,i)=>PINAT_DAG_ITEMS.some(it=>(dagQty[i+'_'+it.id]||0)>0)).length;
+  const total = regTotal + bardoTotal + dagTotal;
+  document.getElementById('floatCount').textContent = total;
+  document.getElementById('floatingBar').className = 'floating-bar'+(total>0?' visible':'');
+}
+
+function sendWhatsApp(supId) {
+  const sup = suppliers.find(s=>s.id===supId); if(!sup) return;
+  const today = new Date().toLocaleDateString('he-IL');
+  let msg = '📋 *הזמנת רכש*\n🏪 ' + sup.name + '\n📅 ' + today + '\n' + '━'.repeat(20) + '\n';
+  let totalLines = 0;
+
+  if (sup.groups) {
+    sup.groups.forEach(g => {
+      const gLines = [];
+      g.items.forEach(item => {
+        const q = quantities[sup.id+'_'+item.id]||0;
+        if(q>0) gLines.push('• ' + item.name + ' — ' + q + ' ' + (UNITS[item.unit]||item.unit));
+      });
+      if (gLines.length) {
+        msg += '\n*' + g.label + '*\n' + gLines.join('\n') + '\n';
+        totalLines += gLines.length;
+      }
+    });
+  } else {
+    const lines = [];
+    sup.items.forEach(item => {
+      const q = quantities[sup.id+'_'+item.id]||0;
+      if(q>0) lines.push('• ' + item.name + ' — ' + q + ' ' + (UNITS[item.unit]||item.unit));
+    });
+    msg += lines.join('\n') + '\n';
+    totalLines = lines.length;
+  }
+
+  if(!totalLines){
+    showToast('❌ לא נבחרו פריטים', 'error');
+    return;
+  }
+  
+  if (!confirm('לשלוח הזמנה ל' + sup.name + ' עם ' + totalLines + ' פריטים?')) return;
+  
+  msg += '\n' + '━'.repeat(20) + '\n*' + totalLines + ' פריטים* | תודה! 🙏';
+  saveToHistory(sup.name, msg);
+  showToast('✅ הזמנה נשלחה בהצלחה!', 'success');
+  
+  const phone = (sup.phone||'').replace(/[^0-9]/g,'');
+  const url = phone.length>=9
+    ? 'https://wa.me/972' + (phone.startsWith('0')?phone.slice(1):phone) + '?text=' + encodeURIComponent(msg)
+    : 'https://wa.me/?text=' + encodeURIComponent(msg);
+  window.open(url,'_blank');
+
+  
+}
+
+
+function saveToHistory(supplierName, msg) {
+  orderHistory.unshift({ id:Date.now(), supplier:supplierName,
+    date:new Date().toLocaleString('he-IL'), msg });
+  renderHistory();
+}
+
+function renderHistory() {
+  const c = document.getElementById('historyContainer');
+  if(!orderHistory.length){
+    c.innerHTML=`<div class="history-empty"><div class="icon">📦</div><p>אין היסטוריה עדיין</p></div>`;return;
+  }
+  c.innerHTML = orderHistory.map(h=>`
+    <div class="history-item">
+      <div class="history-item-header">
+        <div><div class="history-supplier">${h.supplier}</div><div class="history-date">${h.date}</div></div>
+        <button class="history-copy-btn" onclick="copyOrder(${h.id})">📋 העתק</button>
+      </div>
+      <div class="history-items-text" style="white-space:pre-line;font-size:0.8rem">${h.msg}</div>
+    </div>`).join('');
+}
+
+// ── SETTINGS ───────────────────────────────────────────
+function renderSettings() {
+  const all = [{id:'bardo',name:'ברדו — לחמים ארטיסטה',phone:'',emoji:'🍞'}, ...suppliers];
+  document.getElementById('settingsList').innerHTML = all.map(s=>{
+    const itemCount = s.groups
+      ? s.groups.reduce((sum,g)=>sum+g.items.length,0)
+      : (s.items ? s.items.length : '—');
+    return `<div class="settings-row">
+      <div style="display:flex;align-items:center;gap:9px">
+        <span>${s.emoji||'🏪'}</span>
+        <div><div class="settings-label">${s.name}</div>
+        <div style="font-size:0.75rem;color:var(--text3)">${itemCount} פריטים${s.groups?' · '+s.groups.length+' קבוצות':''}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="settings-val">${s.phone||'ללא טלפון'}</span>
+        ${s.id!=='bardo'?`<button class="edit-link" onclick="editPhone(${s.id})">עריכה</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function editPhone(id) {
+  const s = suppliers.find(x=>x.id===id); if(!s) return;
+  const p = prompt(`טלפון ספק "${s.name}":`, s.phone||'');
+  if(p!==null){s.phone=p.trim();saveData();renderSettings();}
+}
+
+function addItem(supId) {
+  const nEl=document.getElementById(`ni-name-${supId}`);
+  const uEl=document.getElementById(`ni-unit-${supId}`);
+  const name=nEl.value.trim(); if(!name){nEl.focus();return;}
+  const sup=suppliers.find(s=>s.id===supId); if(!sup) return;
+  const item={id:nextItemId++,name,unit:uEl.value};
+  sup.items.push(item);
+  document.getElementById(`list-${supId}`).insertAdjacentHTML('beforeend',itemRowHTML(supId,item));
+  nEl.value='';
+  const sub=document.getElementById(`sub-${supId}`);
+  if(sub) sub.textContent=sup.items.length+' פריטים';
+  saveData();
+}
+
+function switchTab(tab,btn) {
+  document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+
+function closeModal(id){document.getElementById(id).className='modal-overlay';}
+function closeIfOverlay(e,id){if(e.target===document.getElementById(id))closeModal(id);}
+
+init();
+</script>
+</body>
+</html>
